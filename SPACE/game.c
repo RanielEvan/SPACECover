@@ -12,7 +12,7 @@
 #define TALTURA 600         //ALTURA DA TELA
 #define FPS 60              //Frames Por Segundo
 
-#define QTDMOBS 40          //Qtd de 30 mobs
+#define QTDMOBS 20          //Qtd de 30 mobs
 #define MOBSPORFILA 10      //10 mobs por fila
 #define DISTANCIAMOBS 15    //Distancia entre mobs
 #define MOBVIDA 10          //Vida dos mobs
@@ -69,13 +69,21 @@ int desenha = 1;        //Indica se o loop redesenha as coisas
 ALLEGRO_BITMAP *gameLogo = NULL; //Logo do game
 int menu = 0;      //Menu atual no Menu Principal
 
-ALLEGRO_EVENT evento;    //Escuta os eventos
+int STAGE = 1;     //INICIA NO STAGE 1 (isso que muda as imagens dos mobs e fundo)
+
+//PONTUACAO
+int tirosEfetuados = 0; //CONTAGEM DE TIROS PARA CALCULAR PONTUACAO NO FINAL
+int mobsMortos = 0;     //MOBS MORTOS (para relacionar com a quantidade de tiros efetuados)
+//---------
 
 Player player;          //Player
 Mobs mobs;              //Grupo de Mobs
 ALLEGRO_BITMAP *mobImg = NULL;  //Imagem dos Mobs
 ALLEGRO_BITMAP *mobImg2 = NULL; //Imagem dos Mobs quando estiverem vida baixa
 
+int BOSS = 0;           //Indica se o player está contra BOSS
+Mob boss;               //BOSS
+int bossVida;           //Vida Max do boss(pra calculos)
 
 Tiro tiros[MAXTIROS];   //POOL DE TIROS (limita a quantidade de tiros no mapa e os tiros são reutilizados quando inativos)
 ALLEGRO_BITMAP *tiroPlayer = NULL; //Imagens do tiro do player (varia de acordo com o tipo)
@@ -91,6 +99,8 @@ int bgDirecao = 1;      //Direção de movimentação do fundo
 
 int frameCount = 0; //CONTAGEM DE FRAMES
 
+ALLEGRO_EVENT evento;    //Escuta os eventos
+
 int moveDir = 0;    //DIREÇÃO DE MOVIMENTO DO PLAYER
 int mobMoveDir = 1; //Direção de movimento dos mobs
 int taxaAtMob = 8; //Taxa de FRAMES para que o mob atualize seu movimento
@@ -104,7 +114,7 @@ int margemMovimento = 30;   //Pixels da Margem da tela que o player e mobs podem
 ALLEGRO_DISPLAY *disp = NULL;       //TELA
 ALLEGRO_TIMER *timer = NULL;        //TEMPO
 ALLEGRO_EVENT_QUEUE *queue = NULL;  //FILA DE EVENTO
-ALLEGRO_FONT *font = NULL;          //FONTE
+ALLEGRO_FONT *fonte = NULL;          //FONTE
 
 
 
@@ -120,11 +130,17 @@ void INICIALIZAR(){
     //Inicializa o ADDON que usa imagens
     al_init_image_addon();
 
+    // Inicialização do add-on para uso de fontes
+    al_init_font_addon();
+
+    // Inicialização do add-on para uso de fontes True Type
+    al_init_ttf_addon();
+
     //Cria as coisas fundamentais do jogo
-    timer = al_create_timer(1.0 / FPS);            //Tempo constante
+    timer = al_create_timer(1.0 / FPS);             //Tempo constante
     queue = al_create_event_queue();                //Fila de eventos
     disp = al_create_display(TLARGURA, TALTURA);    //Tela
-    font = al_create_builtin_font();                //Fonte (para textos)
+    fonte = al_load_font("RES/kardust.ttf", 25, 0); //Fonte (para textos)
 
     //Escuta os ventos desses componentes
     al_register_event_source(queue, al_get_keyboard_event_source());    //EVENTOS DO TECLADO
@@ -137,7 +153,7 @@ void INICIALIZAR(){
 
 void CONSTRUIRJOGO(){
 
-
+    BOSS = 0;
     moveDir = 0;
     gameLogo = al_load_bitmap("RES/gameLogo.png");
 
@@ -145,41 +161,17 @@ void CONSTRUIRJOGO(){
     //ESSA PARTE SERA UMA CARGA DE UM ARQUIVO TXT QUE TEM AS CONFIGURACOES DESSE JOGADOR
     //Metodo que constroi o jogo, atribuindo valores e imagens
     player.ativo = 1;
-//    player.tipo = 'A';
-//    player.tipoTiro = 'A';
     player.dano = 5;
-    player.vida = 20;
+    player.vida = 30;
     player.vidaMax = player.vida;
 
-    ESCOLHAS();
-//    switch(player.tipo){    //Muda a imagem da nave, dependendo do tipo
-//        case 'A':
-//            player.img = al_load_bitmap("RES/PL/naveA.png");
-//            break;
-//        case 'B':
-//            player.img = al_load_bitmap("RES/PL/naveB.png");
-//            break;
-//        case 'C':
-//            player.img = al_load_bitmap("RES/PL/naveC.png");
-//            break;
-//    }
-//
-//    switch(player.tipoTiro){    //Muda a imagem da nave, dependendo do tipo
-//        case 'A':
-//            tiroPlayer = al_load_bitmap("RES/PL/tiroA.png");
-//            break;
-//        case 'B':
-//            tiroPlayer = al_load_bitmap("RES/PL/tiroB.png");
-//            break;
-//        case 'C':
-//            tiroPlayer = al_load_bitmap("RES/PL/tiroC.png");
-//            break;
-//    }
+    ESCOLHAS(); //CONFIGURACAO DE COR DO PLAYER (feita no Menu Inicial)
 
-    player.posicao[0] = TLARGURA / 2;
-    player.posicao[1] = TALTURA - 100;
-    player.tamanho[0] = al_get_bitmap_width(player.img);
-    player.tamanho[1] = al_get_bitmap_height(player.img);
+    player.tamanho[0] = al_get_bitmap_width(player.img);    //Pega a largura em PX da imagem do player
+    player.tamanho[1] = al_get_bitmap_height(player.img);   //Pega a altura em PX da imagem do player
+
+    player.posicao[0] = TLARGURA / 2 - player.tamanho[0]/2; //Posicao X Inicial
+    player.posicao[1] = TALTURA - 100;  //Posicao Y Inicial
 
     player.hpBar = al_load_bitmap("RES/PL/hp1.png");
     player.hp = al_load_bitmap("RES/PL/hp2.png");
@@ -190,9 +182,23 @@ void CONSTRUIRJOGO(){
     //Configura cada mob dentro do grupo
     mobs.qtd = QTDMOBS; //Armazena qtd de mobs
 
-    mobImg = al_load_bitmap("RES/MOB/mobA.png");  //Carrega imagem dos mobs
-    mobImg2 = al_load_bitmap("RES/MOB/mobA2.png"); //Carrega imagem dos mobs, quando tiver com pouca vida
-    tiroMob = al_load_bitmap("RES/MOB/tiroA.png");  //Imagem do tiro dos mobs
+    switch(STAGE){
+        case 1:
+            mobImg = al_load_bitmap("RES/MOB/mobA.png");  //Carrega imagem dos mobs
+            mobImg2 = al_load_bitmap("RES/MOB/mobA2.png"); //Carrega imagem dos mobs, quando tiver com pouca vida
+            tiroMob = al_load_bitmap("RES/MOB/tiroA.png");  //Imagem do tiro dos mobs
+
+            bgimg = al_load_bitmap("RES/STAGES/stage1.png"); //MUDA A IMAGEM DO STAGE
+            break;
+        case 2:
+            mobImg = al_load_bitmap("RES/MOB/mobB.png");  //Carrega imagem dos mobs
+            mobImg2 = al_load_bitmap("RES/MOB/mobB2.png"); //Carrega imagem dos mobs, quando tiver com pouca vida
+            tiroMob = al_load_bitmap("RES/MOB/tiroC.png");  //Imagem do tiro dos mobs
+
+            bgimg = al_load_bitmap("RES/STAGES/stage1.png"); //MUDA A IMAGEM DO STAGE
+            break;
+    }
+
 
     int i;
     for (i=0; i<QTDMOBS; i++){
@@ -209,9 +215,7 @@ void CONSTRUIRJOGO(){
     mobs.posicao[0] = (TLARGURA - MOBSPORFILA * (mobs.mobs[0].tamanho[0] + DISTANCIAMOBS)) / 2;
     mobs.posicao[1] = 40; //Distancia de CIMA
 
-
     //FUNDO
-    bgimg = al_load_bitmap("RES/STAGES/stage1.png");
     bgAltura = al_get_bitmap_height(bgimg);
 
 }
@@ -240,7 +244,7 @@ void CAUSARDANO(int emQuem, int mobId, int dano){
             TELA = 0;
         }
 
-    } else { //MOB
+    } else if(emQuem == 0) { //MOB
         mobs.mobs[mobId].vida -= dano;  //Causa dano a este mob.
 
         if(mobs.mobs[mobId].vida <= MOBVIDA/2){ //Se a vida do mob ficar menor ou igual a metade..
@@ -251,14 +255,101 @@ void CAUSARDANO(int emQuem, int mobId, int dano){
 
             mobs.qtd--; //Decrementa no contador
             if(mobs.qtd <= 0){
-
-                TELA = 0;
-                //CONCLUIRSTAGE();
+                INICIARBOSS();
             }
         }
+
+    } else if(emQuem == 2){ //BOSS
+
+        boss.vida -= dano;  //Causa dano a este mob.
+
+        if(boss.vida <= bossVida/2){ //Se a vida do mob ficar menor ou igual a metade..
+            boss.img = mobImg2; //Muda a imagem do mob
+        }
+        if(boss.vida <= 0){ //Se a vida chegar a 0
+            boss.ativo = 0; //Boss fica inativo (morto)
+
+            STAGE++; //PROXIMO STAGE...
+            //CONCLUIRSTAGE();
+        }
+
     }
 
 }
+
+
+void INICIARBOSS(){
+    BOSS = 1;
+
+    switch(STAGE){
+        case 1:
+            // BOSS DO STAGE 1
+            boss.dano = 10;
+            boss.vida = 100;
+
+            mobImg = al_load_bitmap("RES/MOB/bossA.png");
+            mobImg2 = al_load_bitmap("RES/MOB/bossA2.png");
+            tiroMob = al_load_bitmap("RES/MOB/tiroB.png");
+            break;
+        case 2:
+            // BOSS DO STAGE 2
+            boss.dano = 15;
+            boss.vida = 200;
+
+            mobImg = al_load_bitmap("RES/MOB/bossB.png");
+            mobImg2 = al_load_bitmap("RES/MOB/bossB2.png");
+            tiroMob = al_load_bitmap("RES/MOB/tiroD.png");
+            break;
+    }
+
+    bossVida = boss.vida; //Armazena a vida max desse boss, para calculos.
+    boss.ativo = 1; //ATIVO!!!
+
+    boss.img = mobImg;
+    boss.tamanho[0] = al_get_bitmap_width(mobImg);
+    boss.tamanho[1] = al_get_bitmap_height(mobImg);
+
+    boss.posicao[0] = (TLARGURA / 2) - boss.tamanho[0]/2;
+    boss.posicao[1] = 100;
+
+}
+
+
+void ATUALIZARBOSS(){
+
+    if(frameCount % taxaAtMob == 0 && boss.ativo){
+        boss.posicao[0] += (10 * mobMoveDir);
+
+        if(boss.posicao[0] + boss.tamanho[0]> TLARGURA - margemMovimento){
+            mobMoveDir = -1;
+            boss.posicao[1] += boss.tamanho[1] / 2;
+
+        } else if(boss.posicao[0] < margemMovimento){
+            mobMoveDir = 1;
+            boss.posicao[1] += boss.tamanho[1] / 2;
+        }
+
+
+        //Se o boss chegar na linha do player, Game ov.
+        if(boss.posicao[1] > player.posicao[1]){
+            TELA = 0; //Volta pra o menu...
+        }
+
+        //Controla o tiro do boss
+        if(frameCount % taxaTiroMob == 0){
+            frameCount = 0;
+            MOBATIRAR(boss);
+        }
+    } else if(boss.ativo == 0 && STAGE <= 2){
+
+        if(frameCount == 120){
+            CONSTRUIRJOGO();
+        }
+    }
+}
+
+
+
 
 
 void ATUALIZARFUNDO(){
@@ -290,26 +381,42 @@ void ATUALIZARTIROS(){
                 //TIROS DO PLAYER
                 tiros[tr].posicao[1] -= tiros[tr].speed;    //Move o tiro
 
-                //CHECA SE O TIRO SE CHOCOU COM ALGUM MOB
-                for(mb=0; mb < QTDMOBS; mb++){
-                    if(mobs.mobs[mb].ativo){
-                        if
-                        (tiros[tr].posicao[0] >= mobs.mobs[mb].posicao[0]
-                        && tiros[tr].posicao[0] + tiros[tr].tamanho[0] <= mobs.mobs[mb].posicao[0] + mobs.mobs[mb].tamanho[0]
-                        && tiros[tr].posicao[1] >= mobs.mobs[mb].posicao[1]
-                        && tiros[tr].posicao[1] + tiros[tr].tamanho[1] <= mobs.mobs[mb].posicao[1]+ mobs.mobs[mb].tamanho[1]
-                        ) //Checa se "HITBOX" do tiro bateu em algum MOB
-                        {
-                            CAUSARDANO(0, mb, tiros[tr].dano); //Causa dano no MOB
-                            tiros[tr].ativo = 0; //Desativa esse tiro
-                            break;
+                if(BOSS && boss.ativo){ //Se estiver contra o BOSS
+
+                    if
+                    (tiros[tr].posicao[0] >= boss.posicao[0]
+                    && tiros[tr].posicao[0] + tiros[tr].tamanho[0] <= boss.posicao[0] + boss.tamanho[0]
+                    && tiros[tr].posicao[1] >= boss.posicao[1]
+                    && tiros[tr].posicao[1] + tiros[tr].tamanho[1] <= boss.posicao[1]+ boss.tamanho[1]
+                    ) //Checa se "HITBOX" do tiro bateu no BOSS
+                    {
+                        CAUSARDANO(2, 0, tiros[tr].dano); //Causa dano no BOSS
+                        tiros[tr].ativo = 0; //Desativa esse tiro
+                        break;
+                    }
+
+                } else { //Se estiver contra os MOBS ainda..
+
+                    //CHECA SE O TIRO SE CHOCOU COM ALGUM MOB
+                    for(mb=0; mb < QTDMOBS; mb++){
+                        if(mobs.mobs[mb].ativo){
+                            if
+                            (tiros[tr].posicao[0] >= mobs.mobs[mb].posicao[0]
+                            && tiros[tr].posicao[0] + tiros[tr].tamanho[0] <= mobs.mobs[mb].posicao[0] + mobs.mobs[mb].tamanho[0]
+                            && tiros[tr].posicao[1] >= mobs.mobs[mb].posicao[1]
+                            && tiros[tr].posicao[1] + tiros[tr].tamanho[1] <= mobs.mobs[mb].posicao[1]+ mobs.mobs[mb].tamanho[1]
+                            ) //Checa se "HITBOX" do tiro bateu em algum MOB
+                            {
+                                CAUSARDANO(0, mb, tiros[tr].dano); //Causa dano no MOB
+                                tiros[tr].ativo = 0; //Desativa esse tiro
+                                break;
+                            }
                         }
                     }
                 }
 
-            } else {
+            } else { //TIROS DO MOB/BOSS
 
-                //TIROS DO MOB
                 tiros[tr].posicao[1] += tiros[tr].speed;    //Move o tiro
 
                 //CHECA SE O TIRO SE CHOCOU COM PLAYER
@@ -320,7 +427,7 @@ void ATUALIZARTIROS(){
                 && tiros[tr].posicao[1] + tiros[tr].tamanho[1] <= player.posicao[1] + player.tamanho[1]
                 ) //Checa se "HITBOX" do tiro bateu em algum MOB
                 {
-                    CAUSARDANO(1, 0, tiros[tr].dano); //Causa dano no MOB
+                    CAUSARDANO(1, 0, tiros[tr].dano); //Causa dano no Player
                     tiros[tr].ativo = 0; //Desativa esse tiro
                     break;
                 }
@@ -369,6 +476,10 @@ void ATUALIZARMOBS(){
             }
         }
 
+        //Se os mobs chegarem na linha do player, Game ov.
+        if(mobs.posicao[1] > player.posicao[1]){
+            TELA = 0; //Volta pra o menu...
+        }
 
         if(frameCount % taxaTiroMob == 0){
 
@@ -412,9 +523,7 @@ void PLAYERATIRAR(){
 
             break;
         }
-
     }
-
 
 }
 
@@ -568,8 +677,14 @@ int MENUPRINCIPAL(){
         } else if(menu == 1){
         }
 
-        al_draw_bitmap(player.img, player.posicao[0], player.posicao[1], 0); //Desenha o player
 
+        al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 250, ALLEGRO_ALIGN_CENTER, "Seta ESQ/DIR para trocar cor do tiro");
+        al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 220, ALLEGRO_ALIGN_CENTER, "Seta CIMA/BAIXO para mudar cor da nave");
+        al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 190, ALLEGRO_ALIGN_CENTER, "ENTER para comecar");
+
+
+        //ESCOLHAS DE COR
+        al_draw_bitmap(player.img, player.posicao[0], player.posicao[1], 0); //Desenha o player
         al_draw_bitmap(tiroPlayer, (float)player.posicao[0] + ((float)player.tamanho[0] / 2.3), player.posicao[1] - 20, 0); //Desenha o tiro
 
 
@@ -599,6 +714,8 @@ void GAME(){
 
         if(mobs.qtd > 0){ //Verifica se tem mobs ativos
             ATUALIZARMOBS();    //Se tiver, atualiza
+        } else {
+            ATUALIZARBOSS();
         }
 
         ATUALIZARTIROS();
@@ -615,9 +732,9 @@ void GAME(){
             case ALLEGRO_KEY_UP:
                 PLAYERATIRAR();
                 break;
-            //seta para baixo
-            case ALLEGRO_KEY_DOWN:
-                //...
+            //espaco
+            case ALLEGRO_KEY_SPACE:
+                PLAYERATIRAR();
                 break;
             //seta para esquerda
             case ALLEGRO_KEY_LEFT:
@@ -695,6 +812,12 @@ void GAME(){
                 }
 
             }
+        } else if(BOSS) {
+            al_draw_bitmap(
+                        boss.img,
+                        boss.posicao[0],
+                        boss.posicao[1],
+                        0);
         }
 
 
@@ -733,7 +856,7 @@ void DestruirInstancias(){
 
     al_destroy_bitmap(bgimg);       //Fundo
 
-    al_destroy_font(font);          //FONTE
+    al_destroy_font(fonte);          //FONTE
     al_destroy_display(disp);       //TELA
     al_destroy_timer(timer);        //TIMER
     al_destroy_event_queue(queue);  //FILA DE EVENTO
