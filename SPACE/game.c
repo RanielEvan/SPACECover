@@ -86,6 +86,8 @@ int BOSS = 0;           //Indica se o player está contra BOSS
 Mob boss;               //BOSS
 int bossVida;           //Vida Max do boss(pra calculos)
 
+int atirarLock = 0;     //Segurar seta CIMA para atirar
+int taxaTiro = 10;      //Taxa de quadros para proximo tiro automatico
 Tiro tiros[MAXTIROS];   //POOL DE TIROS (limita a quantidade de tiros no mapa e os tiros são reutilizados quando inativos)
 ALLEGRO_BITMAP *tiroPlayer = NULL; //Imagens do tiro do player (varia de acordo com o tipo)
 ALLEGRO_BITMAP *tiroMob = NULL;    //Imagem do tiro do Mob (varia de acordo com o stage)
@@ -109,6 +111,9 @@ int taxaTiroMob = 20;   //Taxa de FRAMES para que o mob atire
 
 int margemMovimento = 30;   //Pixels da Margem da tela que o player e mobs podem se movimentar.
 
+//Ranking
+char nomeJogador[70] = "";
+
 
 
 //---------- VARIAVEIS [ALLEGRO]
@@ -117,7 +122,8 @@ ALLEGRO_TIMER *timer = NULL;        //TEMPO
 ALLEGRO_EVENT_QUEUE *queue = NULL;  //FILA DE EVENTO
 ALLEGRO_FONT *fonte = NULL;         //FONTE
 ALLEGRO_FONT *fonte2 = NULL;        //FONTE2 (mesma de cima, só que maior)
-
+ALLEGRO_USTR* str = NULL;           //TEXTO INPUT (ranking)
+int pos;
 
 //============================================
 //METODOS (Metodos do jogo e por fim o MAIN())
@@ -131,6 +137,9 @@ void INICIALIZAR(){
 
     //Componentes nativos que serão utilizados
     al_install_keyboard();
+    str = al_ustr_new("");  //Input de Texto
+    pos = (int)al_ustr_size(str);
+
 
     //Inicializa o ADDON que usa imagens
     al_init_image_addon();
@@ -395,26 +404,28 @@ void ATUALIZARFUNDO(){
 //-------------- TIROS -------------------
 void PLAYERATIRAR(){
 
-    int i;
-    for(i=0; i< MAXTIROS; i++){
-        if(tiros[i].ativo == 0){
+    if(atirarLock && frameCount % taxaTiro == 0){
+        int i;
+        for(i=0; i< MAXTIROS; i++){
+            if(tiros[i].ativo == 0){
 
-            //printf("ATIROU!");
-            tiros[i].ativo = 1;     //Ativa esse tiro
-            tiros[i].dano = player.dano;    //Informa o dano do tiro (dano do player)
-            tiros[i].deQuem = 1;    //Indica que o tiro é do player (pra poder causar dano nos mobs)
-            tiros[i].speed = 10;    //Velocidade desse tiro
+                //printf("ATIROU!");
+                tiros[i].ativo = 1;     //Ativa esse tiro
+                tiros[i].dano = player.dano;    //Informa o dano do tiro (dano do player)
+                tiros[i].deQuem = 1;    //Indica que o tiro é do player (pra poder causar dano nos mobs)
+                tiros[i].speed = 10;    //Velocidade desse tiro
 
-            tiros[i].img = tiroPlayer;  //Imagem de tiro que ja foi carregado
+                tiros[i].img = tiroPlayer;  //Imagem de tiro que ja foi carregado
 
-            tiros[i].tamanho[0] = al_get_bitmap_width(tiroPlayer);  //Largura do projetil
-            tiros[i].tamanho[1] = al_get_bitmap_height(tiroPlayer); //Altura do projetil
+                tiros[i].tamanho[0] = al_get_bitmap_width(tiroPlayer);  //Largura do projetil
+                tiros[i].tamanho[1] = al_get_bitmap_height(tiroPlayer); //Altura do projetil
 
-            tiros[i].posicao[0] = player.posicao[0] + (player.tamanho[0] / 2);   //Mesma posicao X do player (centralizado)
-            tiros[i].posicao[1] = player.posicao[1];    //Um pouco mais acima da posicao Y do player
+                tiros[i].posicao[0] = player.posicao[0] + (player.tamanho[0] / 2);   //Mesma posicao X do player (centralizado)
+                tiros[i].posicao[1] = player.posicao[1];    //Um pouco mais acima da posicao Y do player
 
-            tirosEfetuados++; //Contagem de Tiros..
-            break;
+                tirosEfetuados++; //Contagem de Tiros..
+                break;
+            }
         }
     }
 
@@ -723,6 +734,7 @@ void GAME(){
             ATUALIZARBOSS();
         }
 
+        PLAYERATIRAR();
         ATUALIZARTIROS();
 
         //printf("a");
@@ -735,11 +747,13 @@ void GAME(){
         switch(evento.keyboard.keycode){
             //seta para cima
             case ALLEGRO_KEY_UP:
-                PLAYERATIRAR();
+                atirarLock = 1;
+                //PLAYERATIRAR();
                 break;
             //espaco
             case ALLEGRO_KEY_SPACE:
-                PLAYERATIRAR();
+                atirarLock = 1;
+                //PLAYERATIRAR();
                 break;
             //seta para esquerda
             case ALLEGRO_KEY_LEFT:
@@ -760,9 +774,14 @@ void GAME(){
         switch(evento.keyboard.keycode){
             //seta para cima
             case ALLEGRO_KEY_UP:
-                //ATIRA(0);
+                atirarLock = 0;
+                //PLAYERATIRAR();
                 break;
-
+            //espaco
+            case ALLEGRO_KEY_SPACE:
+                atirarLock = 0;
+                //PLAYERATIRAR();
+                break;
             //seta para esquerda
             case ALLEGRO_KEY_LEFT:
                 moveDir = 0;
@@ -864,10 +883,13 @@ void ENDGAME(){
 
         ATUALIZARFUNDO();   //Atualiza o Fundo
 
+        //SALVARPONTOS();     //SALVA OS PONTOS DO PLAYER PARA O RANKING
+
     }
 
       //SE FOR UM BOTAO PRESSIONADO
     else if(evento.type == ALLEGRO_EVENT_KEY_DOWN){
+
 
          //verifica qual tecla foi PRESSINADA
         switch(evento.keyboard.keycode){
@@ -889,15 +911,45 @@ void ENDGAME(){
                 break;
 
             case ALLEGRO_KEY_ENTER:
-                CONSTRUIRJOGO(0);
-                TELA = 0;
+                if(al_ustr_length(str) > 0){
+
+                    //Salva e Mostrar Ranking
+                    al_ustr_newf("%s", nomeJogador);
+                    printf("%s", nomeJogador);
+
+                    CONSTRUIRJOGO(0);
+                    TELA = 0;
+                }
                 break;
 
             //esc. sair=1 faz com que o programa saia do loop principal
             case ALLEGRO_KEY_ESCAPE:
                 INGAME = 0;
+                break;
+
+//            default:
+//                sprintf (letter,"%c",evento.keyboard.keycode+64);
+//                strcat (nomeJogador, letter);
+//                caret++;
+
+        }
+
+    }
+
+    if(evento.type == ALLEGRO_EVENT_KEY_CHAR){
+        if(evento.keyboard.unichar >= 32)
+            {
+                pos += al_ustr_append_chr(str, evento.keyboard.unichar);
+            }
+            else if(evento.keyboard.keycode == ALLEGRO_KEY_BACKSPACE)
+            {
+                if(al_ustr_prev(str, &pos))
+                al_ustr_truncate(str, pos);
         }
     }
+
+
+
 
     else if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 
@@ -917,9 +969,16 @@ void ENDGAME(){
 
         if(frameCount >= 60){
 
-            al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 250, ALLEGRO_ALIGN_CENTER, "Fim de Jogo!");
+            al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 150, ALLEGRO_ALIGN_CENTER, "Fim de Jogo!");
+            al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, 220, ALLEGRO_ALIGN_CENTER, "Digite seu nome?");
+
+            //INPUT DE NOME
+            al_draw_ustr(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 260, ALLEGRO_ALIGN_CENTRE, str);
+
             al_draw_textf(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 300, ALLEGRO_ALIGN_CENTER, "Voce atirou %d vezes", tirosEfetuados);
             al_draw_textf(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 200, ALLEGRO_ALIGN_CENTER, "Sua pontuacao foi: %d", PONTOSPLAYER);
+
+
 
         }
 
