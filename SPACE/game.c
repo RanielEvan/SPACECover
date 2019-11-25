@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "gametipos.h"  //BIBLIOTECA CUSTOMIZADA (com os tipos customizados)
 
 //Biblioteca ALLEGRO
 #include <allegro5/allegro5.h>          //Allegro5 (BASE)
@@ -17,46 +18,6 @@
 
 #define MAXTIROS 30          //Max de tiros no jogo
 
-//--------- ESTRUTURAS E TIPOS
-typedef struct {
-    int posicao[2];     //Posição do Player na tela ([0] = x, [1] = y)
-    int tamanho[2];     //Tamanho desse obj {[0] = LARGURA, [1] = ALTURA}
-    char ativo;         //Se esta ativo/vivo ou não
-    char tipo;          //Tipo da Nave
-    char tipoTiro;      //Tipo do Tiro
-    int vida;           //HP Atual
-    int vidaMax;        //Hp max (para calculos)
-    int dano;           //Dano do tiro
-    ALLEGRO_BITMAP *img;    //Imagem do player
-    ALLEGRO_BITMAP *hpBar;  //Imagem Moldura do HP
-    ALLEGRO_BITMAP *hp;     //Imagem do Hp mesmo
-} Player;
-
-typedef struct {
-    int posicao[2];     //Posição do Mob na tela ([0] = x, [1] = y)
-    int tamanho[2];     //Tamanho desse obj {[0] = LARGURA, [1] = ALTURA}
-    char ativo;         //Se esse mob está ativo ou não
-    char tipo;          //Tipo do mob
-    int vida;           //HP do mob
-    int dano;           //Dano desse mob
-    ALLEGRO_BITMAP *img;    //Imagem do Mob
-} Mob;
-
-typedef struct {
-    Mob mobs[100];      //Mobs desse grupo (Até 100 mobs)
-    int posicao[2];     //POSICAO DO GRUPO*
-    int qtd;            //Quantidade de mobs ativos
-} Mobs;
-
-typedef struct {
-    char ativo;         //Indica se está ativo ou não
-    int posicao[2];     //Posição do tiro na tela ([0] = x, [1] = y)
-    int tamanho[2];     //Tamanho desse obj {[0] = LARGURA, [1] = ALTURA}
-    int deQuem;         //Indica de quem é esse tiro
-    int dano;           //Dano desse tiro
-    int speed;          //Velocidade
-    ALLEGRO_BITMAP *img;        //Dependendo de quem for, muda a imagem
-} Tiro;
 
 
 //---------- VARIAVEIS
@@ -914,8 +875,8 @@ void ENDGAME(){
                 if(al_ustr_length(str) > 0){
 
                     //Salva e Mostrar Ranking
-                    al_ustr_newf("%s", nomeJogador);
-                    printf("%s", nomeJogador);
+                    strcpy(nomeJogador, al_cstr(str)); //Armazena o nome informado na variavel
+                    printf("%s", nomeJogador); //Mostra no console
 
                     CONSTRUIRJOGO(0);
                     TELA = 0;
@@ -926,11 +887,6 @@ void ENDGAME(){
             case ALLEGRO_KEY_ESCAPE:
                 INGAME = 0;
                 break;
-
-//            default:
-//                sprintf (letter,"%c",evento.keyboard.keycode+64);
-//                strcat (nomeJogador, letter);
-//                caret++;
 
         }
 
@@ -970,12 +926,12 @@ void ENDGAME(){
         if(frameCount >= 60){
 
             al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 150, ALLEGRO_ALIGN_CENTER, "Fim de Jogo!");
-            al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, 220, ALLEGRO_ALIGN_CENTER, "Digite seu nome?");
+            al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, 220, ALLEGRO_ALIGN_CENTER, "Digite seu nome:");
 
             //INPUT DE NOME
-            al_draw_ustr(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 260, ALLEGRO_ALIGN_CENTRE, str);
+            al_draw_ustr(fonte2, al_map_rgb(253, 195, 53), TLARGURA / 2, 250, ALLEGRO_ALIGN_CENTRE, str);
 
-            al_draw_textf(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 300, ALLEGRO_ALIGN_CENTER, "Voce atirou %d vezes", tirosEfetuados);
+            al_draw_textf(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 240, ALLEGRO_ALIGN_CENTER, "Voce atirou %d vezes", tirosEfetuados);
             al_draw_textf(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 200, ALLEGRO_ALIGN_CENTER, "Sua pontuacao foi: %d", PONTOSPLAYER);
 
 
