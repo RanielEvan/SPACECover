@@ -6,6 +6,8 @@
 #include <allegro5/allegro_font.h>      //Textos & Fontes
 #include <allegro5/allegro_image.h>     //Imagens
 #include <allegro5/allegro_ttf.h>       //Permite uso de Fontes TTF
+#include <allegro5/allegro_audio.h>     //Audio
+#include <allegro5/allegro_acodec.h>    //AudioCodec
 //#include <allegro5/allegro_native_dialog.h>
 
 //---------- MACROS
@@ -34,10 +36,15 @@ int PONTOSPLAYER = 0;   //Pontuação
 int tirosEfetuados = 0; //CONTAGEM DE TIROS PARA CALCULAR PONTUACAO NO FINAL
 //---------
 
-Player player;          //Player
-Mobs mobs;              //Grupo de Mobs
+Player player;                  //Player
+Mobs mobs;                      //Grupo de Mobs
 ALLEGRO_BITMAP *mobImg = NULL;  //Imagem dos Mobs
 ALLEGRO_BITMAP *mobImg2 = NULL; //Imagem dos Mobs quando estiverem vida baixa
+
+ALLEGRO_SAMPLE *playerTiroSFX = NULL;  //Audio Tiro do Player
+ALLEGRO_SAMPLE *mobTiroSFX = NULL;     //Audio Tiro do Mob
+
+ALLEGRO_AUDIO_STREAM *somStage = NULL; //Musica de Fundo
 
 
 int QTDMOBS = 30;       //Qtd de mobs no Grupo
@@ -111,6 +118,17 @@ void INICIALIZAR(){
     // Inicialização do add-on para uso de fontes True Type
     al_init_ttf_addon();
 
+    // Inicializa addon de Audio
+    al_install_audio();
+    al_init_acodec_addon(); //Addon que da suporte as extensoes
+    al_reserve_samples(5);  //Mixer padrão
+
+    //AUDIO
+    somStage = al_load_audio_stream("RES/SONS/ingame.ogg", 4, 1024); //Carrega o som de fundo
+    al_attach_audio_stream_to_mixer(somStage, al_get_default_mixer()); //Joga o somStage no Mixer
+    al_set_audio_stream_playmode(somStage, ALLEGRO_PLAYMODE_LOOP); //Toca o audio no modo loop
+
+
     //Cria as coisas fundamentais do jogo
     timer = al_create_timer(1.0 / FPS);             //Tempo constante
     queue = al_create_event_queue();                //Fila de eventos
@@ -143,6 +161,9 @@ void CONSTRUIRJOGO(int novoStage){
         player.vida = 30;
         player.vidaMax = player.vida;
 
+        //Carrega o audio de tiro do player
+        playerTiroSFX = al_load_sample("RES/SONS/tiroPlayer.wav");
+
         ESCOLHAS(); //CONFIGURACAO DE COR DO PLAYER (feita no Menu Inicial)
 
         player.tamanho[0] = al_get_bitmap_width(player.img);    //Pega a largura em PX da imagem do player
@@ -166,12 +187,16 @@ void CONSTRUIRJOGO(int novoStage){
             mobImg2 = al_load_bitmap("RES/MOB/mobA2.png"); //Carrega imagem dos mobs, quando tiver com pouca vida
             tiroMob = al_load_bitmap("RES/MOB/tiroA.png");  //Imagem do tiro dos mobs
 
+            mobTiroSFX = al_load_sample("RES/SONS/tiroMob.wav");   //Carrega tiro do Mob
+
             bgimg = al_load_bitmap("RES/STAGES/stage1.png"); //MUDA A IMAGEM DO STAGE
             break;
         case 2:
             mobImg = al_load_bitmap("RES/MOB/mobB.png");  //Carrega imagem dos mobs
             mobImg2 = al_load_bitmap("RES/MOB/mobB2.png"); //Carrega imagem dos mobs, quando tiver com pouca vida
             tiroMob = al_load_bitmap("RES/MOB/tiroC.png");  //Imagem do tiro dos mobs
+
+            mobTiroSFX = al_load_sample("RES/SONS/tiroMob.wav");   //Carrega tiro do Mob
 
             bgimg = al_load_bitmap("RES/STAGES/stage2.png"); //MUDA A IMAGEM DO STAGE
             break;
@@ -222,6 +247,8 @@ void INICIARBOSS(){
             break;
     }
 
+    mobTiroSFX = al_load_sample("RES/SONS/tiroBoss.wav");   //Carrega tiro do Boss
+
     bossVida = boss.vida; //Armazena a vida max desse boss, para calculos.
     boss.ativo = 1; //ATIVO!!!
 
@@ -237,7 +264,6 @@ void INICIARBOSS(){
 
 
 //---------- ATUALIZACOES DAS COISAS -----------------
-
 void ATUALIZARPLAYER(){
 
     if(moveDir < 0){
@@ -384,6 +410,8 @@ void PLAYERATIRAR(){
                 tiros[i].posicao[0] = player.posicao[0] + (player.tamanho[0] / 2);   //Mesma posicao X do player (centralizado)
                 tiros[i].posicao[1] = player.posicao[1];    //Um pouco mais acima da posicao Y do player
 
+                al_play_sample(playerTiroSFX, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL); //Som de tiro do mob
+
                 tirosEfetuados++; //Contagem de Tiros..
                 break;
             }
@@ -409,6 +437,8 @@ void MOBATIRAR(Mob mob){
 
             tiros[i].posicao[0] = mob.posicao[0] + (mob.tamanho[0] / 2);   //Mesma posicao X do mob (centralizado)
             tiros[i].posicao[1] = mob.posicao[1] + mob.tamanho[1];    //Um pouco mais abaixo da posicao Y do mob
+
+            al_play_sample(mobTiroSFX, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL); //Som de tiro do mob
 
             break;
 
@@ -959,6 +989,10 @@ void DestruirInstancias(){
     al_destroy_bitmap(tiroMob);     //Imagem do Tiro do mob
 
     al_destroy_bitmap(bgimg);       //Fundo
+
+    al_destroy_sample(playerTiroSFX);   //Som tiro player
+    al_destroy_sample(mobTiroSFX);      //Som Tiro mob
+    al_destroy_audio_stream(somStage);  //Som do stage
 
     al_destroy_font(fonte);         //FONTE
     al_destroy_font(fonte2);        //FONTE2
