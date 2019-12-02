@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "gametipos.h"  //BIBLIOTECA CUSTOMIZADA (com os tipos customizados)
+#include "persis.h"     //Lib com funcoes de Leitura e Escrita em arquivo
 
 //Biblioteca ALLEGRO
 #include <allegro5/allegro5.h>          //Allegro5 (BASE)
@@ -56,6 +57,7 @@ int bossVida;           //Vida Max do boss(pra calculos)
 
 int atirarLock = 0;     //Segurar seta CIMA para atirar
 int taxaTiro = 10;      //Taxa de quadros para proximo tiro automatico
+int tiroFrameCount = 0; //Contagem de frames para atirar
 Tiro tiros[MAXTIROS];   //POOL DE TIROS (limita a quantidade de tiros no mapa e os tiros são reutilizados quando inativos)
 ALLEGRO_BITMAP *tiroPlayer = NULL; //Imagens do tiro do player (varia de acordo com o tipo)
 ALLEGRO_BITMAP *tiroMob = NULL;    //Imagem do tiro do Mob (varia de acordo com o stage)
@@ -220,6 +222,14 @@ void CONSTRUIRJOGO(int novoStage){
 
     //FUNDO
     bgAltura = al_get_bitmap_height(bgimg);
+
+
+    //RESETA OS TIROS...
+    atirarLock = 0;
+    for(i=0; i<MAXTIROS; i++){
+        tiros[i].ativo = 0;
+    }
+
 
 }
 
@@ -391,29 +401,36 @@ void ATUALIZARFUNDO(){
 //-------------- TIROS -------------------
 void PLAYERATIRAR(){
 
-    if(atirarLock && frameCount % taxaTiro == 0){
-        int i;
-        for(i=0; i< MAXTIROS; i++){
-            if(tiros[i].ativo == 0){
+    if(atirarLock){
 
-                //printf("ATIROU!");
-                tiros[i].ativo = 1;     //Ativa esse tiro
-                tiros[i].dano = player.dano;    //Informa o dano do tiro (dano do player)
-                tiros[i].deQuem = 1;    //Indica que o tiro é do player (pra poder causar dano nos mobs)
-                tiros[i].speed = 10;    //Velocidade desse tiro
+        tiroFrameCount++;
 
-                tiros[i].img = tiroPlayer;  //Imagem de tiro que ja foi carregado
+        if(tiroFrameCount % taxaTiro == 0){
+            tiroFrameCount = 0;
 
-                tiros[i].tamanho[0] = al_get_bitmap_width(tiroPlayer);  //Largura do projetil
-                tiros[i].tamanho[1] = al_get_bitmap_height(tiroPlayer); //Altura do projetil
+            int i;
+            for(i=0; i< MAXTIROS; i++){
+                if(tiros[i].ativo == 0){
 
-                tiros[i].posicao[0] = player.posicao[0] + (player.tamanho[0] / 2);   //Mesma posicao X do player (centralizado)
-                tiros[i].posicao[1] = player.posicao[1];    //Um pouco mais acima da posicao Y do player
+                    //printf("ATIROU!");
+                    tiros[i].ativo = 1;     //Ativa esse tiro
+                    tiros[i].dano = player.dano;    //Informa o dano do tiro (dano do player)
+                    tiros[i].deQuem = 1;    //Indica que o tiro é do player (pra poder causar dano nos mobs)
+                    tiros[i].speed = 10;    //Velocidade desse tiro
 
-                al_play_sample(playerTiroSFX, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL); //Som de tiro do mob
+                    tiros[i].img = tiroPlayer;  //Imagem de tiro que ja foi carregado
 
-                tirosEfetuados++; //Contagem de Tiros..
-                break;
+                    tiros[i].tamanho[0] = al_get_bitmap_width(tiroPlayer);  //Largura do projetil
+                    tiros[i].tamanho[1] = al_get_bitmap_height(tiroPlayer); //Altura do projetil
+
+                    tiros[i].posicao[0] = player.posicao[0] + (player.tamanho[0] / 2.3);   //Mesma posicao X do player (centralizado)
+                    tiros[i].posicao[1] = player.posicao[1];    //Um pouco mais acima da posicao Y do player
+
+                    al_play_sample(playerTiroSFX, 0.7, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL); //Som de tiro do mob
+
+                    tirosEfetuados++; //Contagem de Tiros..
+                    break;
+                }
             }
         }
     }
@@ -527,7 +544,8 @@ void CAUSARDANO(int emQuem, int mobId, int dano){
             player.ativo = 0;
             //GAME OVER..
             frameCount = 0; //Zera para contagem
-            TELA = 2;
+            CALCPONTOS(); //Calcula a pontuação do player
+            TELA = 2; //Tela de fim de jogo...
         }
 
     } else if(emQuem == 0) { //MOB
@@ -739,11 +757,13 @@ void GAME(){
             //seta para cima
             case ALLEGRO_KEY_UP:
                 atirarLock = 1;
+                tiroFrameCount = taxaTiro-1;
                 //PLAYERATIRAR();
                 break;
             //espaco
             case ALLEGRO_KEY_SPACE:
                 atirarLock = 1;
+                tiroFrameCount = taxaTiro-1;
                 //PLAYERATIRAR();
                 break;
             //seta para esquerda
@@ -885,22 +905,6 @@ void ENDGAME(){
          //verifica qual tecla foi PRESSINADA
         switch(evento.keyboard.keycode){
 
-            case ALLEGRO_KEY_UP:
-
-                break;
-
-            case ALLEGRO_KEY_DOWN:
-
-                break;
-
-            case ALLEGRO_KEY_LEFT:
-
-                break;
-
-            case ALLEGRO_KEY_RIGHT:
-
-                break;
-
             case ALLEGRO_KEY_ENTER:
                 if(al_ustr_length(str) > 0){
 
@@ -975,7 +979,12 @@ void ENDGAME(){
 
 }
 
-
+void CALCPONTOS(){
+    PONTOSPLAYER -= tirosEfetuados;
+    if(PONTOSPLAYER < 0){
+        PONTOSPLAYER = 0;
+    }
+}
 
 //-------------- LIBERAR MEMORIA UTILIZADA -------------------
 void DestruirInstancias(){

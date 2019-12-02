@@ -248,13 +248,16 @@
 
 1573860934 source:d:\0 - develop\projetos\0 - git\space invaders cover\space\estados.c
 
-1574696538 source:c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\game.c
+1575285183 source:c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\game.c
 	<stdio.h>
 	"gametipos.h"
+	"persis.h"
 	<allegro5/allegro5.h>
 	<allegro5/allegro_font.h>
 	<allegro5/allegro_image.h>
 	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
 
 1574077598 c:\users\desenv.desenv2\desktop\evan\git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro5.h
 	"allegro.h"
@@ -743,7 +746,7 @@
 1372628331 d:\0 - develop\projetos\0 - git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro_primitives.h
 	<allegro5/allegro.h>
 
-1574696667 c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\gametipos.h
+1574697509 c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\gametipos.h
 	<stdio.h>
 	<allegro5/allegro5.h>
 	<allegro5/allegro_image.h>
@@ -759,4 +762,15 @@
 1362327499 d:\0 - develop\projetos\0 - git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro_acodec.h
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
+
+1574077598 c:\users\desenv.desenv2\desktop\evan\git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro_audio.h
+	"allegro5/allegro.h"
+
+1574077598 c:\users\desenv.desenv2\desktop\evan\git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro_acodec.h
+	"allegro5/allegro.h"
+	"allegro5/allegro_audio.h"
+
+1574875184 c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\persis.h
+	<stdio.h>
+	<locale.h>
 
