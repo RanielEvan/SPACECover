@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "gametipos.h"  //BIBLIOTECA CUSTOMIZADA (com os tipos customizados)
+#include "persis.h"     //BIBLIOTECA COM FUNCOES DE SALVAR/LER ARQUIVO
 
 //Biblioteca ALLEGRO
 #include <allegro5/allegro5.h>          //Allegro5 (BASE)
@@ -885,21 +886,6 @@ void ENDGAME(){
          //verifica qual tecla foi PRESSINADA
         switch(evento.keyboard.keycode){
 
-            case ALLEGRO_KEY_UP:
-
-                break;
-
-            case ALLEGRO_KEY_DOWN:
-
-                break;
-
-            case ALLEGRO_KEY_LEFT:
-
-                break;
-
-            case ALLEGRO_KEY_RIGHT:
-
-                break;
 
             case ALLEGRO_KEY_ENTER:
                 if(al_ustr_length(str) > 0){
@@ -907,6 +893,9 @@ void ENDGAME(){
                     //Salva e Mostrar Ranking
                     strcpy(nomeJogador, al_cstr(str)); //Armazena o nome informado na variavel
                     printf("%s", nomeJogador); //Mostra no console
+
+                    PONTOSPLAYER -= tirosEfetuados; //Subtrai os tiros dos Pontos
+                    SalvarPontuacao(nomeJogador, PONTOSPLAYER); //Salva o Ranking (PERSISTENCIA)
 
                     CONSTRUIRJOGO(0);
                     TELA = 0;
@@ -1007,26 +996,31 @@ void DestruirInstancias(){
 //------------- PRINCIPAL --------------------
 int main()
 {
-    INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
 
-    CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
-    printf("Iniciando o Game\n");
+    LerRanking();
 
-    al_start_timer(timer); //Inicia temporizador
 
-    while(INGAME)
-    {
-        if(TELA == 0){
-            MENUPRINCIPAL();
-        } else if(TELA == 1){
-            GAME();
-        } else if(TELA == 2){
-            ENDGAME();
-        }
-    }
 
-    //Destroi as instancias para liberar memoria utilizada
-    DestruirInstancias();
+//    INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
+//
+//    CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
+//    printf("Iniciando o Game\n");
+//
+//    al_start_timer(timer); //Inicia temporizador
+//
+//    while(INGAME)
+//    {
+//        if(TELA == 0){
+//            MENUPRINCIPAL();
+//        } else if(TELA == 1){
+//            GAME();
+//        } else if(TELA == 2){
+//            ENDGAME();
+//        }
+//    }
+//
+//    //Destroi as instancias para liberar memoria utilizada
+//    DestruirInstancias();
 
     return 0;
 }

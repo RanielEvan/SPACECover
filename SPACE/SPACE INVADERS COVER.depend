@@ -493,9 +493,10 @@
 	"allegro5/allegro.h"
 	"allegro5/allegro_font.h"
 
-1574713575 source:d:\0 - develop\projetos\0 - git\spacecover\space\game.c
+1575239558 source:d:\0 - develop\projetos\0 - git\spacecover\space\game.c
 	<stdio.h>
 	"gametipos.h"
+	"persis.h"
 	<allegro5/allegro5.h>
 	<allegro5/allegro_font.h>
 	<allegro5/allegro_image.h>
@@ -759,4 +760,8 @@
 1362327499 d:\0 - develop\projetos\0 - git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro_acodec.h
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
+
+1575255558 d:\0 - develop\projetos\0 - git\spacecover\space\persis.h
+	<stdio.h>
+	<locale.h>
 
