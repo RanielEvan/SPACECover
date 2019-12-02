@@ -912,8 +912,7 @@ void ENDGAME(){
                     strcpy(nomeJogador, al_cstr(str)); //Armazena o nome informado na variavel
                     printf("%s", nomeJogador); //Mostra no console
 
-                    PONTOSPLAYER -= tirosEfetuados; //Subtrai os tiros dos Pontos
-                    SalvarPontuacao(nomeJogador, PONTOSPLAYER); //Salva o Ranking (PERSISTENCIA)
+                    //SalvarPontuacao(nomeJogador, PONTOSPLAYER); //Salva o Ranking (PERSISTENCIA)
 
                     CONSTRUIRJOGO(0);
                     TELA = 0;

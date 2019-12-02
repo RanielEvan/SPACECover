@@ -248,7 +248,7 @@
 
 1573860934 source:d:\0 - develop\projetos\0 - git\space invaders cover\space\estados.c
 
-1575285183 source:c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\game.c
+1575304746 source:c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\game.c
 	<stdio.h>
 	"gametipos.h"
 	"persis.h"
@@ -764,7 +764,8 @@
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
 
-<<<<<<< HEAD
+1362327499 D
+
 1574077598 c:\users\desenv.desenv2\desktop\evan\git\spacecover\allegro 5.0.10 (mingw-4.7.0)\include\allegro5\allegro_audio.h
 	"allegro5/allegro.h"
 
@@ -772,10 +773,13 @@
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
 
-1574875184 c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\persis.h
-=======
+1575310515 c:\users\desenv.desenv2\desktop\evan\git\spacecover\space\persis.h
+	<stdio.h>
+	<locale.h>
+
 1575255558 d:\0 - develop\projetos\0 - git\spacecover\space\persis.h
->>>>>>> b3a179510c1cd143d7a20bf6a4e3764153c14cb5
+
+1575255558 179510c1cd143d7a20bf6a4e3764153c14cb5
 	<stdio.h>
 	<locale.h>
 
