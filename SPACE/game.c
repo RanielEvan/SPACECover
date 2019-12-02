@@ -912,6 +912,9 @@ void ENDGAME(){
                     strcpy(nomeJogador, al_cstr(str)); //Armazena o nome informado na variavel
                     printf("%s", nomeJogador); //Mostra no console
 
+                    PONTOSPLAYER -= tirosEfetuados; //Subtrai os tiros dos Pontos
+                    SalvarPontuacao(nomeJogador, PONTOSPLAYER); //Salva o Ranking (PERSISTENCIA)
+
                     CONSTRUIRJOGO(0);
                     TELA = 0;
                 }
@@ -1016,26 +1019,31 @@ void DestruirInstancias(){
 //------------- PRINCIPAL --------------------
 int main()
 {
-    INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
 
-    CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
-    printf("Iniciando o Game\n");
+    LerRanking();
 
-    al_start_timer(timer); //Inicia temporizador
 
-    while(INGAME)
-    {
-        if(TELA == 0){
-            MENUPRINCIPAL();
-        } else if(TELA == 1){
-            GAME();
-        } else if(TELA == 2){
-            ENDGAME();
-        }
-    }
 
-    //Destroi as instancias para liberar memoria utilizada
-    DestruirInstancias();
+//    INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
+//
+//    CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
+//    printf("Iniciando o Game\n");
+//
+//    al_start_timer(timer); //Inicia temporizador
+//
+//    while(INGAME)
+//    {
+//        if(TELA == 0){
+//            MENUPRINCIPAL();
+//        } else if(TELA == 1){
+//            GAME();
+//        } else if(TELA == 2){
+//            ENDGAME();
+//        }
+//    }
+//
+//    //Destroi as instancias para liberar memoria utilizada
+//    DestruirInstancias();
 
     return 0;
 }
