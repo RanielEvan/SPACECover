@@ -1019,30 +1019,28 @@ void DestruirInstancias(){
 int main()
 {
 
-    LerRanking();
+//    LerRanking();
 
+    INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
 
+    CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
+    printf("Iniciando o Game\n");
 
-//    INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
-//
-//    CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
-//    printf("Iniciando o Game\n");
-//
-//    al_start_timer(timer); //Inicia temporizador
-//
-//    while(INGAME)
-//    {
-//        if(TELA == 0){
-//            MENUPRINCIPAL();
-//        } else if(TELA == 1){
-//            GAME();
-//        } else if(TELA == 2){
-//            ENDGAME();
-//        }
-//    }
-//
-//    //Destroi as instancias para liberar memoria utilizada
-//    DestruirInstancias();
+    al_start_timer(timer); //Inicia temporizador
+
+    while(INGAME)
+    {
+        if(TELA == 0){
+            MENUPRINCIPAL();
+        } else if(TELA == 1){
+            GAME();
+        } else if(TELA == 2){
+            ENDGAME();
+        }
+    }
+
+    //Destroi as instancias para liberar memoria utilizada
+    DestruirInstancias();
 
     return 0;
 }
