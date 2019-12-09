@@ -1,6 +1,7 @@
 # SPACECover
-Game em C com Allegro5, estilo Space Invaders.
+*Game em C com Allegro5, estilo Space Invaders.*
+
+Para rodar o jogo, basta baixar o arquivo **SpaceCover-Final.zip**, extrair e abrir o executavel.
 
 ## Notas
-+ O projeto foi feito no CODE::BLOCKS porque o DevC++ estava incompativel com o Allegro.
-
++ O Projeto foi feito no CODE::BLOCKS, pois o DevC++ estava com problemas de incompatibilidade com Allegro.
