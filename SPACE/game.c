@@ -135,8 +135,8 @@ void INICIALIZAR(){
     timer = al_create_timer(1.0 / FPS);             //Tempo constante
     queue = al_create_event_queue();                //Fila de eventos
     disp = al_create_display(TLARGURA, TALTURA);    //
-    fonte = al_load_font("RES/kardust.ttf", 25, 0); //Fonte (para textos)
-    fonte2 = al_load_font("RES/kardust.ttf", 32, 0); //Fonte (para textos)
+    fonte = al_load_font("RES/kardust.ttf", 22, 0); //Fonte (para textos)
+    fonte2 = al_load_font("RES/kardust.ttf", 31, 0); //Fonte (para textos)
 
     //Escuta os ventos desses componentes
     al_register_event_source(queue, al_get_keyboard_event_source());    //EVENTOS DO TECLADO
@@ -515,8 +515,12 @@ void ATUALIZARTIROS(){
 
                 //CHECA SE O TIRO SE CHOCOU COM PLAYER
                 if
-                (tiros[tr].posicao[0] >= player.posicao[0]
-                && tiros[tr].posicao[0] + tiros[tr].tamanho[0] <= player.posicao[0] + player.tamanho[0]
+                (
+                 (
+                  (tiros[tr].posicao[0] <= player.posicao[0] && tiros[tr].posicao[0]+tiros[tr].tamanho[0] >= player.posicao[0]) ||
+                  (tiros[tr].posicao[0] >= player.posicao[0] + player.tamanho[0] && tiros[tr].posicao[0] <= player.posicao[0] + player.tamanho[0]) ||
+                  (tiros[tr].posicao[0] >= player.posicao[0] && tiros[tr].posicao[0] + tiros[tr].tamanho[0] <= player.posicao[0] + player.tamanho[0])
+                 )
                 && tiros[tr].posicao[1] >= player.posicao[1]
                 && tiros[tr].posicao[1] + tiros[tr].tamanho[1] <= player.posicao[1] + player.tamanho[1]
                 ) //Checa se "HITBOX" do tiro bateu em algum MOB
@@ -633,6 +637,8 @@ void ESCOLHAS(){
 
 }
 
+
+int MenuTela = 0; //Se for 1 = Ranking, se for 2 = Creditos
 int MENUPRINCIPAL(){
 
     al_wait_for_event(queue, &evento);   //Pronto para ouvir o proimo evento
@@ -673,6 +679,23 @@ int MENUPRINCIPAL(){
                 escolha2++; //MUDA COR DO TIRO
                 break;
 
+            case ALLEGRO_KEY_F1:
+                //Ranking
+                if(MenuTela == 1)
+                    MenuTela = 0;
+                else
+                    MenuTela = 1;
+
+                break;
+
+            case ALLEGRO_KEY_F2:
+                //Creditos
+                if(MenuTela == 2)
+                    MenuTela = 0;
+                else
+                    MenuTela = 2;
+                break;
+
             case ALLEGRO_KEY_ENTER:
                 CONSTRUIRJOGO(1);
                 TELA = 1;
@@ -704,9 +727,39 @@ int MENUPRINCIPAL(){
                               20,
                               380,200,0);
 
-        al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 250, ALLEGRO_ALIGN_CENTER, "Seta ESQ/DIR para trocar cor do tiro");
-        al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 220, ALLEGRO_ALIGN_CENTER, "Seta CIMA/BAIXO para mudar cor da nave");
-        al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 180, ALLEGRO_ALIGN_CENTER, "ENTER para comecar");
+        if(MenuTela == 0){ //MENU PRINCIPAl
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 100, ALLEGRO_ALIGN_CENTER, "F1 - Ranking");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 70, ALLEGRO_ALIGN_CENTER, "F2 - Creditos");
+
+            al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 250, ALLEGRO_ALIGN_CENTER, "Seta ESQ/DIR para trocar cor do tiro");
+            al_draw_text(fonte, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 220, ALLEGRO_ALIGN_CENTER, "Seta CIMA/BAIXO para mudar cor da nave");
+            al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, TALTURA - 180, ALLEGRO_ALIGN_CENTER, "ENTER para comecar");
+
+
+        } else if(MenuTela == 1){ //RANKING
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 130, ALLEGRO_ALIGN_CENTER, "F1 - Menu Principal");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 100, ALLEGRO_ALIGN_CENTER, "F2 - Creditos");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 70, ALLEGRO_ALIGN_CENTER, "ENTER - Iniciar Jogo");
+            int roi;
+            for(roi = 0; roi < 5 ; roi++){
+                al_draw_textf(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 250 + (40*roi), ALLEGRO_ALIGN_CENTER, "%s   -   %d", ranking[roi].nome, ranking[roi].pontos);
+            }
+
+
+        } else if(MenuTela == 2){ //CREDITOS
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 130, ALLEGRO_ALIGN_CENTER, "F1 - Ranking");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 100, ALLEGRO_ALIGN_CENTER, "F2 - Menu Principal");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), 120 , TALTURA - 70, ALLEGRO_ALIGN_CENTER, "ENTER - Iniciar Jogo");
+
+            al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 250, ALLEGRO_ALIGN_CENTER, "Arielli Cristine - 1910026370");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), TLARGURA / 2, 290, ALLEGRO_ALIGN_CENTER, "Imagens, Sons & Ideias");
+            al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 330, ALLEGRO_ALIGN_CENTER, "Raniel Evangelista - 1910026087");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), TLARGURA / 2, 370, ALLEGRO_ALIGN_CENTER, "Logica do Jogo & Ideias");
+
+            al_draw_text(fonte2, al_map_rgb(255, 255, 255), TLARGURA / 2, 410, ALLEGRO_ALIGN_CENTER, "Yago Walter - 1910026058");
+            al_draw_text(fonte, al_map_rgb(253, 195, 53), TLARGURA / 2, 450, ALLEGRO_ALIGN_CENTER, "Persistencia & Ideias");
+
+        }
 
 
         //ESCOLHAS DE COR
@@ -913,6 +966,7 @@ void ENDGAME(){
                     printf("%s", nomeJogador); //Mostra no console
 
                     //SalvarPontuacao(nomeJogador, PONTOSPLAYER); //Salva o Ranking (PERSISTENCIA)
+                    SalvarPontuacao(nomeJogador, PONTOSPLAYER);
 
                     CONSTRUIRJOGO(0);
                     TELA = 0;
@@ -1019,12 +1073,14 @@ void DestruirInstancias(){
 int main()
 {
 
-//    LerRanking();
-
     INICIALIZAR();      //INICIALIZA OS COMPONENTES DO JOGO E ALLEGRO
 
     CONSTRUIRJOGO(0);    //CONSTRUI A BASE DO JOGO
-    printf("Iniciando o Game\n");
+    printf("\n\nIniciando o Game\n");
+
+    //----
+    LerRanking();
+    //----
 
     al_start_timer(timer); //Inicia temporizador
 
@@ -1043,4 +1099,6 @@ int main()
     DestruirInstancias();
 
     return 0;
+
 }
+

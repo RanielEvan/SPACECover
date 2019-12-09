@@ -496,7 +496,7 @@
 	"allegro5/allegro.h"
 	"allegro5/allegro_font.h"
 
-1575809450 source:d:\0 - develop\projetos\0 - git\spacecover\space\game.c
+1575850186 source:d:\0 - develop\projetos\0 - git\spacecover\space\game.c
 	<stdio.h>
 	"gametipos.h"
 	"persis.h"
@@ -777,7 +777,7 @@
 	<stdio.h>
 	<locale.h>
 
-1575809428 d:\0 - develop\projetos\0 - git\spacecover\space\persis.h
+1575845215 d:\0 - develop\projetos\0 - git\spacecover\space\persis.h
 	<stdio.h>
 	<locale.h>
 
